@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>.cvt roflannov - Monitoring.</title>
+    <style>
+        :root {
+            --bg-light: #f8f9ff;
+            --text-light: #2c3e50;
+            --card-light: #ffffff;
+            --border-light: #e2e8f0;
+            --accent-light: #8b5cf6;
+            
+            --bg-dark: #0f172a;
+            --text-dark: #e2e8f0;
+            --card-dark: #1e293b;
+            --border-dark: #334155;
+            --accent-dark: #a78bfa;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+            background-color: var(--bg-light);
+            color: var(--text-light);
+        }
+
+        body.dark-theme {
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--card-light);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .dark-theme .controls {
+            background: var(--card-dark);
+        }
+
+        .search-box {
+            padding: 8px 15px;
+            border: 1px solid var(--border-light);
+            border-radius: 5px;
+            width: 250px;
+            background: var(--bg-light);
+            color: var(--text-light);
+        }
+
+        .dark-theme .search-box {
+            background: var(--bg-dark);
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+
+        .theme-toggle {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            background: var(--accent-light);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .dark-theme .theme-toggle {
+            background: var(--accent-dark);
+        }
+
+        .server-category {
+            margin-bottom: 30px;
+            background: var(--card-light);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .dark-theme .server-category {
+            background: var(--card-dark);
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .sort-controls button {
+            padding: 5px 10px;
+            margin-left: 10px;
+            border: 1px solid var(--border-light);
+            border-radius: 5px;
+            background: var(--bg-light);
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .dark-theme .sort-controls button {
+            background: var(--bg-dark);
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+
+        .server-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .server-card {
+            padding: 15px;
+            border: 1px solid var(--border-light);
+            border-radius: 5px;
+            background: var(--bg-light);
+        }
+
+        .dark-theme .server-card {
+            background: var(--bg-dark);
+            border-color: var(--border-dark);
+        }
+
+        .server-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .server-ip {
+            color: var(--accent-light);
+            font-size: 0.9em;
+        }
+
+        .dark-theme .server-ip {
+            color: var(--accent-dark);
+        }
+
+        .online-count {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .server-ip {
+            color: var(--accent-light);
+            font-size: 0.9em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dark-theme .server-ip {
+            color: var(--accent-dark);
+        }
+
+        .server-ip:hover {
+            text-decoration: underline;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .status-online {
+            background-color: #22c55e;
+        }
+
+        .status-offline {
+            background-color: #ef4444;
+        }
+
+        .status-locked {
+            color: #22c55e;
+            font-size: 12px;
+        }
+
+        .status-locked::before {
+            content: "🔒";
+        }
+
+        .copy-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-light);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+            animation: fadeInOut 2s ease-in-out;
+        }
+
+        .dark-theme .copy-notification {
+            background: var(--accent-dark);
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <input type="text" class="search-box" placeholder="Поиск серверов...">
+        <button class="theme-toggle">Сменить тему</button>
+    </div>
+
+    <div id="arizona" class="server-category">
+        <div class="category-header">
+            <h2>Arizona RP</h2>
+            <div class="sort-controls">
+                <button onclick="sortServers('arizona', 'asc')">По возрастанию ↑</button>
+                <button onclick="sortServers('arizona', 'desc')">По убыванию ↓</button>
+            </div>
+        </div>
+        <div class="server-grid" id="arizona-grid"></div>
+    </div>
+
+    <div id="rodina" class="server-category">
+        <div class="category-header">
+            <h2>Rodina RP</h2>
+            <div class="sort-controls">
+                <button onclick="sortServers('rodina', 'asc')">По возрастанию ↑</button>
+                <button onclick="sortServers('rodina', 'desc')">По убыванию ↓</button>
+            </div>
+        </div>
+        <div class="server-grid" id="rodina-grid"></div>
+    </div>
+
+    <div id="village" class="server-category">
+        <div class="category-header">
+            <h2>Жизнь в Деревне</h2>
+            <div class="sort-controls">
+                <button onclick="sortServers('village', 'asc')">По возрастанию ↑</button>
+                <button onclick="sortServers('village', 'desc')">По убыванию ↓</button>
+            </div>
+        </div>
+        <div class="server-grid" id="village-grid"></div>
+    </div>
+
+    <div class="copy-notification">IP скопирован в буфер обмена</div>
+
+    <script>
+        const servers = {
+            arizona: [
+                { name: "Phoenix", ip: "185.169.134.3:7777" },
+                { name: "Tucson", ip: "185.169.134.4:7777" },
+                { name: "Scottdale", ip: "185.169.134.43:7777" },
+                { name: "Chandler", ip: "185.169.134.44:7777" },
+                { name: "Brainburg", ip: "185.169.134.45:7777" },
+                { name: "Saint-Rose", ip: "185.169.134.5:7777" },
+                { name: "Mesa", ip: "185.169.134.59:7777" },
+                { name: "Red-Rock", ip: "185.169.134.61:7777" },
+                { name: "Yuma", ip: "185.169.134.107:7777" },
+                { name: "Surprise", ip: "185.169.134.109:7777" },
+                { name: "Vice Cty", ip: "80.66.82.147:7777" },
+// [10] Surprise - 185.169.134.109:7777
+// [11] Prescott - 185.169.134.166:7777
+// [12] Glendale - 185.169.134.171:7777
+// [13] Kingman - 185.169.134.172:7777
+// [14] Winslow - 185.169.134.173:7777
+// [15] Payson - 185.169.134.174:7777
+// [16] Gilbert - 80.66.82.191:7777
+// [17] Show Low - 80.66.82.190:7777
+// [18] Casa-Grande - 80.66.82.188:7777
+// [19] Page - 80.66.82.168:7777
+// [20] Sun-City - 80.66.82.159:7777
+// [21] Queen-Creek - 80.66.82.200:7777
+// [22] Sedona - 80.66.82.144:7777
+// [23] Holiday - 80.66.82.132:7777
+// [24] Wednesday - 80.66.82.128:7777
+// [25] Yava - 80.66.82.113:7777
+// [26] Faraway - 80.66.82.82:7777
+// [27] Bumble Bee - 80.66.82.87:7777
+// [28] Christmas - 80.66.82.54:7777
+// [29] Mirage - 80.66.82.39:7777
+// [30] Love - 80.66.82.33:7777
+// [31] Drake - 80.66.82.22:7777
+// MOBILE I - 80.66.82.162:5125
+// MOBILE II - 80.66.82.148:5125
+// MOBILE III - 80.66.82.136:5125
+            ],
+            rodina: [
+                { name: "Центральный округ", ip: "185.169.134.163:7777" },
+                { name: "Южный округ", ip: "185.169.134.60:8904" },
+                { name: "Северный округ", ip: "185.169.134.62:8904" },
+                { name: "Восточный округ", ip: "185.169.134.108:7777" },
+                { name: "Западаный округ", ip: "80.66.71.85:7777" },
+                { name: "Приморский округ", ip: "80.66.82.58:7777" },
+                { name: "Федеральный округ", ip: "80.66.82.55:7777" },
+            ],
+            village: [
+                { name: "Жизнь в Деревне 1", ip: "185.169.134.164:7777" },
+                { name: "Жизнь в Деревне 2", ip: "185.169.134.165:7777" }
+            ]
+        };
+
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showNotification();
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        }
+
+        function showNotification() {
+            const notification = document.querySelector('.copy-notification');
+            notification.style.display = 'block';
+            
+            notification.style.animation = 'none';
+            notification.offsetHeight;
+            notification.style.animation = 'fadeInOut 2s ease-in-out';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 2000);
+        }
+
+        function createServerCard(server) {
+            const online = getRandomOnline();
+            const card = document.createElement('div');
+            card.className = 'server-card';
+            card.innerHTML = `
+                <div class="server-name">${server.name}</div>
+                <div class="server-ip" onclick="copyToClipboard('${server.ip}')">
+                    ${getStatusIcon(server.status)}
+                    ${server.ip}
+                </div>
+                <div class="online-count">Онлайн: ${online}</div>
+            `;
+            card.dataset.online = online;
+            return card;
+        }
+
+        function getRandomOnline() {
+            return Math.floor(Math.random() * 1000);
+        }
+
+        function createServerCard(server) {
+            const online = getRandomOnline();
+            const card = document.createElement('div');
+            card.className = 'server-card';
+            card.innerHTML = `
+                <div class="server-name">${server.name}</div>
+                <div class="server-ip">${server.ip}</div>
+                <div class="online-count">Онлайн: ${online}</div>
+            `;
+            card.dataset.online = online;
+            return card;
+        }
+
+        function renderServers(category) {
+            const grid = document.getElementById(`${category}-grid`);
+            grid.innerHTML = '';
+            servers[category].forEach(server => {
+                grid.appendChild(createServerCard(server));
+            });
+        }
+
+        function sortServers(category, order) {
+            const grid = document.getElementById(`${category}-grid`);
+            const cards = Array.from(grid.children);
+            
+            cards.sort((a, b) => {
+                const onlineA = parseInt(a.dataset.online);
+                const onlineB = parseInt(b.dataset.online);
+                return order === 'asc' ? onlineA - onlineB : onlineB - onlineA;
+            });
+
+            grid.innerHTML = '';
+            cards.forEach(card => grid.appendChild(card));
+        }
+
+        document.querySelector('.search-box').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            Object.keys(servers).forEach(category => {
+                const cards = document.querySelectorAll(`#${category}-grid .server-card`);
+                cards.forEach(card => {
+                    const serverName = card.querySelector('.server-name').textContent.toLowerCase();
+                    const serverIp = card.querySelector('.server-ip').textContent.toLowerCase();
+                    const visible = serverName.includes(searchTerm) || serverIp.includes(searchTerm);
+                    card.style.display = visible ? '' : 'none';
+                });
+            });
+        });
+
+        document.querySelector('.theme-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+        });
+
+        Object.keys(servers).forEach(category => renderServers(category));
+    </script>
+</body>
+</html>
